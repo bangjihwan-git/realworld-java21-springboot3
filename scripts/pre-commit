@@ -8,6 +8,9 @@ set -e
 echo "🔍 Running pre-commit checks..."
 echo ""
 
+# Create build directory for logs
+mkdir -p build
+
 # Step 1: Check code formatting
 echo "📝 Checking code formatting with spotlessCheck..."
 if ! ./gradlew spotlessCheck --quiet 2>&1; then
@@ -25,34 +28,26 @@ echo ""
 
 # Step 2: Run all unit tests
 echo "🧪 Running all unit tests..."
-echo "   (This may take a moment...)"
+echo "   (This may take 10-40 seconds depending on cache...)"
 echo ""
 
-# Run tests and capture output
-if ! ./gradlew test --console=plain 2>&1 | tee /tmp/gradle-test-output.log | grep -E "(BUILD|TEST|FAILED|> Task)"; then
+# Run tests and capture output to project build directory
+TEST_LOG="build/git-hook-test-output.log"
+if ! ./gradlew test --console=plain > "$TEST_LOG" 2>&1; then
     echo ""
     echo "❌ Tests failed! Commit aborted."
     echo ""
     echo "Please fix the failing tests before committing."
-    echo "Test output has been saved to: /tmp/gradle-test-output.log"
+    echo "Test output has been saved to: $TEST_LOG"
     echo ""
     echo "💡 To view detailed test results:"
-    echo "   - Check the console output above"
-    echo "   - Open test reports: ./gradlew test --rerun-tasks"
-    echo "   - View HTML reports in: build/reports/tests/test/index.html"
+    echo "   - Check test log: cat $TEST_LOG"
+    echo "   - Re-run tests: ./gradlew test --rerun-tasks"
+    echo "   - View HTML reports: open server/api/build/reports/tests/test/index.html"
     echo ""
     echo "⚠️  To bypass this check (NOT RECOMMENDED):"
     echo "   git commit --no-verify"
     echo ""
-    exit 1
-fi
-
-# Check if tests actually passed by looking at the build result
-if grep -q "BUILD FAILED" /tmp/gradle-test-output.log; then
-    echo ""
-    echo "❌ Tests failed! Commit aborted."
-    echo ""
-    echo "Please fix the failing tests before committing."
     exit 1
 fi
 

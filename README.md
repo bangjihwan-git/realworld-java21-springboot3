@@ -136,8 +136,10 @@ This project uses Git pre-commit hooks to maintain code quality by automatically
 
 When you attempt to commit, the hook will automatically:
 
-1. **Check code formatting** - Runs `spotlessCheck` to ensure code style compliance
-2. **Run all tests** - Executes the full test suite to verify all tests pass
+1. **Check code formatting** - Runs `spotlessCheck` to ensure code style compliance (~2-5 seconds)
+2. **Run all tests** - Executes the full test suite to verify all tests pass (~10-40 seconds)
+
+**Note**: The hook typically takes 10-40 seconds to complete. This time is invested upfront to catch issues before they reach CI/CD, saving time in the long run.
 
 If any check fails, the commit will be aborted with a clear error message.
 
