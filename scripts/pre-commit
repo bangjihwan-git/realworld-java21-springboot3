@@ -1,0 +1,61 @@
+#!/bin/bash
+
+# Pre-commit hook: Run unit tests before allowing commit
+# This ensures all tests pass before code is committed to the repository
+
+set -e
+
+echo "🔍 Running pre-commit checks..."
+echo ""
+
+# Create build directory for logs
+mkdir -p build
+
+# Step 1: Check code formatting
+echo "📝 Checking code formatting with spotlessCheck..."
+if ! ./gradlew spotlessCheck --quiet 2>&1; then
+    echo ""
+    echo "❌ Code formatting issues detected!"
+    echo ""
+    echo "💡 Fix formatting by running:"
+    echo "   ./gradlew spotlessApply"
+    echo ""
+    echo "Then stage the changes and try committing again."
+    exit 1
+fi
+echo "✅ Code formatting check passed"
+echo ""
+
+# Step 2: Run all unit tests
+echo "🧪 Running all unit tests..."
+echo "   (This may take 10-40 seconds depending on cache...)"
+echo ""
+
+# Run tests and capture output to project build directory
+TEST_LOG="build/git-hook-test-output.log"
+if ! ./gradlew test --console=plain > "$TEST_LOG" 2>&1; then
+    echo ""
+    echo "❌ Tests failed! Commit aborted."
+    echo ""
+    echo "Please fix the failing tests before committing."
+    echo "Test output has been saved to: $TEST_LOG"
+    echo ""
+    echo "💡 To view detailed test results:"
+    echo "   - Check test log: cat $TEST_LOG"
+    echo "   - Re-run tests: ./gradlew test --rerun-tasks"
+    echo "   - View HTML reports: open server/api/build/reports/tests/test/index.html"
+    echo ""
+    echo "⚠️  To bypass this check (NOT RECOMMENDED):"
+    echo "   git commit --no-verify"
+    echo ""
+    exit 1
+fi
+
+echo ""
+echo "✅ All tests passed!"
+echo ""
+echo "🎉 Pre-commit checks completed successfully!"
+echo "   Proceeding with commit..."
+echo ""
+
+exit 0

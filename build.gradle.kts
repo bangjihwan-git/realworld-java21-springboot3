@@ -58,6 +58,37 @@ allprojects {
     }
 }
 
+// Git hooks installation task (root project only)
+tasks.register("installGitHooks") {
+    group = "git"
+    description = "Install git hooks for pre-commit checks"
+
+    doLast {
+        val hooksDir = file(".git/hooks")
+        val preCommitScript = file("scripts/pre-commit")
+        val targetHook = file(".git/hooks/pre-commit")
+
+        if (!hooksDir.exists()) {
+            println("❌ Error: .git/hooks directory not found. Are you in a git repository?")
+            return@doLast
+        }
+
+        if (preCommitScript.exists()) {
+            preCommitScript.copyTo(targetHook, overwrite = true)
+            targetHook.setExecutable(true)
+            println("✅ Pre-commit hook installed successfully at .git/hooks/pre-commit")
+            println("")
+            println("The hook will run the following checks before each commit:")
+            println("  • Code formatting (spotlessCheck) - ~2-5 seconds")
+            println("  • All unit tests - ~10-40 seconds")
+            println("")
+            println("💡 To bypass in emergencies: git commit --no-verify")
+        } else {
+            println("❌ Error: Pre-commit script not found at scripts/pre-commit")
+        }
+    }
+}
+
 subprojects {
     plugins.apply(
         versionCatalog.plugins.spring.boot
