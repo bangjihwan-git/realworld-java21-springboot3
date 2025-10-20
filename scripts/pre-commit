@@ -1,0 +1,66 @@
+#!/bin/bash
+
+# Pre-commit hook: Run unit tests before allowing commit
+# This ensures all tests pass before code is committed to the repository
+
+set -e
+
+echo "🔍 Running pre-commit checks..."
+echo ""
+
+# Step 1: Check code formatting
+echo "📝 Checking code formatting with spotlessCheck..."
+if ! ./gradlew spotlessCheck --quiet 2>&1; then
+    echo ""
+    echo "❌ Code formatting issues detected!"
+    echo ""
+    echo "💡 Fix formatting by running:"
+    echo "   ./gradlew spotlessApply"
+    echo ""
+    echo "Then stage the changes and try committing again."
+    exit 1
+fi
+echo "✅ Code formatting check passed"
+echo ""
+
+# Step 2: Run all unit tests
+echo "🧪 Running all unit tests..."
+echo "   (This may take a moment...)"
+echo ""
+
+# Run tests and capture output
+if ! ./gradlew test --console=plain 2>&1 | tee /tmp/gradle-test-output.log | grep -E "(BUILD|TEST|FAILED|> Task)"; then
+    echo ""
+    echo "❌ Tests failed! Commit aborted."
+    echo ""
+    echo "Please fix the failing tests before committing."
+    echo "Test output has been saved to: /tmp/gradle-test-output.log"
+    echo ""
+    echo "💡 To view detailed test results:"
+    echo "   - Check the console output above"
+    echo "   - Open test reports: ./gradlew test --rerun-tasks"
+    echo "   - View HTML reports in: build/reports/tests/test/index.html"
+    echo ""
+    echo "⚠️  To bypass this check (NOT RECOMMENDED):"
+    echo "   git commit --no-verify"
+    echo ""
+    exit 1
+fi
+
+# Check if tests actually passed by looking at the build result
+if grep -q "BUILD FAILED" /tmp/gradle-test-output.log; then
+    echo ""
+    echo "❌ Tests failed! Commit aborted."
+    echo ""
+    echo "Please fix the failing tests before committing."
+    exit 1
+fi
+
+echo ""
+echo "✅ All tests passed!"
+echo ""
+echo "🎉 Pre-commit checks completed successfully!"
+echo "   Proceeding with commit..."
+echo ""
+
+exit 0

@@ -114,6 +114,43 @@ Many developers using JPA tend to use `Long` as the ID type. However, consider w
 >
 > **Note:** If you encounter a permission denied error when running Gradle tasks, run `chmod +x gradlew` to grant execution permission.
 
+### Git Hooks Setup
+
+This project uses Git pre-commit hooks to maintain code quality by automatically running tests and code formatting checks before each commit.
+
+#### Install Git Hooks
+
+**Option 1: Using Gradle (Recommended)**
+
+```shell
+./gradlew installGitHooks
+```
+
+**Option 2: Using Shell Script**
+
+```shell
+./scripts/install-hooks.sh
+```
+
+#### What the Pre-commit Hook Does
+
+When you attempt to commit, the hook will automatically:
+
+1. **Check code formatting** - Runs `spotlessCheck` to ensure code style compliance
+2. **Run all tests** - Executes the full test suite to verify all tests pass
+
+If any check fails, the commit will be aborted with a clear error message.
+
+#### Bypassing the Hook (Emergency Use Only)
+
+In exceptional circumstances, you can bypass the pre-commit hook:
+
+```shell
+git commit --no-verify -m "emergency fix"
+```
+
+> **Warning:** Only use `--no-verify` when absolutely necessary, as it bypasses quality checks.
+
 ### API Documentation
 
 API documentation is available at https://1chz.github.io/realworld-java21-springboot3, generated using ReDoc in HTML format.
